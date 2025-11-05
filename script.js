@@ -9,41 +9,49 @@ function init() {
 
   const canvas = document.getElementById('heart');
   const ctx = canvas.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
+
+  const mobile = window.isDevice;
+  const rand = Math.random;
+
+  let width, height, dpr;
 
   function resizeCanvas() {
-    const mobile = window.isDevice;
-    const koef = mobile ? 0.5 : 1;
-    const w = window.innerWidth * koef;
-    const h = window.innerHeight * koef;
+    dpr = window.devicePixelRatio || 1;
+    const koef = mobile ? 0.6 : 1;
 
-    canvas.width = w * dpr;
-    canvas.height = h * dpr;
+    width = Math.floor(window.innerWidth * koef);
+    height = Math.floor(window.innerHeight * koef);
+
+    // Фізичні розміри для Retina
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+
+    // Візуальні CSS-розміри
+    canvas.style.width = width + "px";
+    canvas.style.height = height + "px";
+
+    ctx.setTransform(1, 0, 0, 1, 0, 0); // скидаємо попередній масштаб
     ctx.scale(dpr, dpr);
 
     ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, w, h);
-
-    width = w;
-    height = h;
+    ctx.fillRect(0, 0, width, height);
   }
 
-  let width, height;
   resizeCanvas();
   window.addEventListener('resize', resizeCanvas);
   window.addEventListener('orientationchange', resizeCanvas);
 
-  const rand = Math.random;
-  const heartPosition = rad => [Math.pow(Math.sin(rad), 3),
-    -(15 * Math.cos(rad) - 5 * Math.cos(2 * rad) - 2 * Math.cos(3 * rad) - Math.cos(4 * rad))];
+  const heartPosition = rad => [
+    Math.pow(Math.sin(rad), 3),
+    -(15 * Math.cos(rad) - 5 * Math.cos(2 * rad) - 2 * Math.cos(3 * rad) - Math.cos(4 * rad))
+  ];
 
   const scaleAndTranslate = (pos, sx, sy, dx, dy) => [dx + pos[0] * sx, dy + pos[1] * sy];
 
-  const mobile = window.isDevice;
   const traceCount = mobile ? 20 : 50;
   const dr = mobile ? 0.3 : 0.1;
-
   const pointsOrigin = [];
+
   for (let i = 0; i < Math.PI * 2; i += dr)
     pointsOrigin.push(scaleAndTranslate(heartPosition(i), 210, 13, 0, 0));
   for (let i = 0; i < Math.PI * 2; i += dr)
