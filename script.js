@@ -7,8 +7,8 @@ function init() {
   if (loaded) return;
   loaded = true;
 
-  const canvas = document.getElementById('heart');
-  const ctx = canvas.getContext('2d');
+  const canvas = document.getElementById("heart");
+  const ctx = canvas.getContext("2d");
 
   const mobile = window.isDevice;
   const rand = Math.random;
@@ -17,20 +17,17 @@ function init() {
 
   function resizeCanvas() {
     dpr = window.devicePixelRatio || 1;
-    const koef = mobile ? 0.6 : 1;
 
-    width = Math.floor(window.innerWidth * koef);
-    height = Math.floor(window.innerHeight * koef);
+    width = window.innerWidth;
+    height = window.innerHeight;
 
-    // Фізичні розміри для Retina
+    // Retina-фікс: збільшуємо реальний розмір полотна у пікселях
     canvas.width = width * dpr;
     canvas.height = height * dpr;
-
-    // Візуальні CSS-розміри
     canvas.style.width = width + "px";
     canvas.style.height = height + "px";
 
-    ctx.setTransform(1, 0, 0, 1, 0, 0); // скидаємо попередній масштаб
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.scale(dpr, dpr);
 
     ctx.fillStyle = "#000";
@@ -38,26 +35,30 @@ function init() {
   }
 
   resizeCanvas();
-  window.addEventListener('resize', resizeCanvas);
-  window.addEventListener('orientationchange', resizeCanvas);
+  window.addEventListener("resize", resizeCanvas);
+  window.addEventListener("orientationchange", resizeCanvas);
 
-  const heartPosition = rad => [
+  const heartPosition = (rad) => [
     Math.pow(Math.sin(rad), 3),
     -(15 * Math.cos(rad) - 5 * Math.cos(2 * rad) - 2 * Math.cos(3 * rad) - Math.cos(4 * rad))
   ];
 
-  const scaleAndTranslate = (pos, sx, sy, dx, dy) => [dx + pos[0] * sx, dy + pos[1] * sy];
+  const scaleAndTranslate = (pos, sx, sy, dx, dy) => [
+    dx + pos[0] * sx,
+    dy + pos[1] * sy
+  ];
 
-  const traceCount = mobile ? 20 : 50;
-  const dr = mobile ? 0.3 : 0.1;
+  const traceCount = mobile ? 18 : 50;
+  const dr = mobile ? 0.35 : 0.1;
+  const scaleBase = Math.min(width, height) / (mobile ? 4 : 3.2);
+
   const pointsOrigin = [];
-
   for (let i = 0; i < Math.PI * 2; i += dr)
-    pointsOrigin.push(scaleAndTranslate(heartPosition(i), 210, 13, 0, 0));
+    pointsOrigin.push(scaleAndTranslate(heartPosition(i), scaleBase * 1.1, scaleBase * 0.07, 0, 0));
   for (let i = 0; i < Math.PI * 2; i += dr)
-    pointsOrigin.push(scaleAndTranslate(heartPosition(i), 150, 9, 0, 0));
+    pointsOrigin.push(scaleAndTranslate(heartPosition(i), scaleBase * 0.8, scaleBase * 0.05, 0, 0));
   for (let i = 0; i < Math.PI * 2; i += dr)
-    pointsOrigin.push(scaleAndTranslate(heartPosition(i), 90, 5, 0, 0));
+    pointsOrigin.push(scaleAndTranslate(heartPosition(i), scaleBase * 0.5, scaleBase * 0.03, 0, 0));
 
   const heartPointsCount = pointsOrigin.length;
   const targetPoints = [];
@@ -76,16 +77,19 @@ function init() {
     const x = rand() * width;
     const y = rand() * height;
     e[i] = {
-      vx: 0, vy: 0, R: 2, speed: rand() + 5,
+      vx: 0,
+      vy: 0,
+      R: 2,
+      speed: rand() * 0.7 + 2.5, // трохи повільніше і плавніше
       q: ~~(rand() * heartPointsCount),
       D: 2 * (i % 2) - 1,
-      force: 0.2 * rand() + 0.7,
-      f: `hsla(0,${~~(40 * rand() + 100)}%,${~~(60 * rand() + 20)}%,.3)`,
+      force: 0.2 * rand() + 0.8,
+      f: `hsla(${~~(360 * rand())},100%,${~~(50 + 10 * rand())}%,.6)`,
       trace: Array.from({ length: traceCount }, () => ({ x, y }))
     };
   }
 
-  const config = { traceK: 0.4, timeDelta: 0.01 };
+  const config = { traceK: 0.4, timeDelta: 0.015 };
   let time = 0;
 
   function loop() {
@@ -127,8 +131,9 @@ function init() {
       }
 
       ctx.fillStyle = u.f;
-      for (let k = 0; k < u.trace.length; k++)
-        ctx.fillRect(u.trace[k].x, u.trace[k].y, 1, 1);
+      for (let k = 0; k < u.trace.length; k++) {
+        ctx.fillRect(u.trace[k].x, u.trace[k].y, 1.5, 1.5);
+      }
     }
     requestAnimationFrame(loop);
   }
@@ -136,7 +141,7 @@ function init() {
   loop();
 }
 
-if (document.readyState === 'complete' || document.readyState === 'interactive')
+if (document.readyState === "complete" || document.readyState === "interactive")
   init();
 else
-  document.addEventListener('DOMContentLoaded', init);
+  document.addEventListener("DOMContentLoaded", init);
